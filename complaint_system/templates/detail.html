@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">客诉详情 #{{ c.id }}</h2>
+  <a href="{{ url_for('complaint_list') }}" class="btn btn-outline">返回列表</a>
+</div>
+
+<div class="detail-grid">
+  <div class="detail-card">
+    <h3>基本信息</h3>
+    <table class="info-table">
+      <tr><th>客户名称</th><td>{{ c.customer }}</td></tr>
+      <tr><th>问题类型</th><td>{{ c.problem_type }}</td></tr>
+      <tr><th>严重程度</th><td><span class="badge badge-{{ c.severity }}">{{ c.severity }}</span></td></tr>
+      <tr><th>跟进人</th><td>{{ c.follower }}</td></tr>
+      <tr><th>解决期限</th><td>{{ c.deadline }}</td></tr>
+      <tr><th>当前状态</th><td><span class="status status-{{ c.status }}">{{ c.status }}</span></td></tr>
+      <tr><th>创建时间</th><td>{{ c.created_at }}</td></tr>
+      <tr><th>更新时间</th><td>{{ c.updated_at }}</td></tr>
+      <tr><th>问题描述</th><td>{{ c.description or '（无）' }}</td></tr>
+    </table>
+  </div>
+
+  <div class="detail-card">
+    <h3>更新状态</h3>
+    <form method="post">
+      <div class="form-group">
+        <label>新状态</label>
+        <select name="status">
+          {% for s in status_options %}
+          <option value="{{ s }}" {{ 'selected' if c.status == s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>处理备注</label>
+        <textarea name="note" rows="3" placeholder="填写处理记录（可选）"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">保存</button>
+    </form>
+
+    {% if c.notes %}
+    <div class="notes-section">
+      <h4>历史备注</h4>
+      {% for n in c.notes|reverse %}
+      <div class="note-item">
+        <span class="note-time">{{ n.time }}</span>
+        <p>{{ n.note }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

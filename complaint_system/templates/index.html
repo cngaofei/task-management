@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">仪表盘</h2>
+
+<div class="stats-grid">
+  <div class="stat-card stat-total">
+    <div class="stat-num">{{ stats.total }}</div>
+    <div class="stat-label">客诉总数</div>
+  </div>
+  <div class="stat-card stat-active">
+    <div class="stat-num">{{ stats.active }}</div>
+    <div class="stat-label">待跟进</div>
+  </div>
+  <div class="stat-card stat-overdue">
+    <div class="stat-num">{{ stats.overdue }}</div>
+    <div class="stat-label">已逾期</div>
+  </div>
+  <div class="stat-card stat-today">
+    <div class="stat-num">{{ stats.due_today }}</div>
+    <div class="stat-label">今日到期</div>
+  </div>
+  <div class="stat-card stat-tomorrow">
+    <div class="stat-num">{{ stats.due_tomorrow }}</div>
+    <div class="stat-label">明日到期</div>
+  </div>
+  <div class="stat-card stat-resolved">
+    <div class="stat-num">{{ stats.resolved }}</div>
+    <div class="stat-label">已解决</div>
+  </div>
+</div>
+
+{% if urgent %}
+<div class="section">
+  <h3 class="section-title">⚠ 紧急跟进（已逾期或今日到期）</h3>
+  <table class="table">
+    <thead>
+      <tr><th>ID</th><th>客户</th><th>类型</th><th>严重程度</th><th>跟进人</th><th>期限</th><th>状态</th><th>操作</th></tr>
+    </thead>
+    <tbody>
+    {% for c in urgent %}
+      <tr class="row-urgent">
+        <td>#{{ c.id }}</td>
+        <td>{{ c.customer }}</td>
+        <td>{{ c.problem_type }}</td>
+        <td><span class="badge badge-{{ c.severity }}">{{ c.severity }}</span></td>
+        <td>{{ c.follower }}</td>
+        <td class="overdue">{{ c.deadline }}</td>
+        <td><span class="status status-{{ c.status }}">{{ c.status }}</span></td>
+        <td><a href="{{ url_for('detail', cid=c.id) }}" class="btn btn-sm">处理</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-box">今日无紧急客诉，继续保持！</div>
+{% endif %}
+
+<div class="actions">
+  <a href="{{ url_for('add_complaint') }}" class="btn btn-primary">+ 新增客诉</a>
+  <a href="{{ url_for('complaint_list') }}" class="btn">查看全部</a>
+</div>
+{% endblock %}

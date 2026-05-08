@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">客诉列表</h2>
+  <a href="{{ url_for('add_complaint') }}" class="btn btn-primary">+ 新增</a>
+</div>
+
+<form class="filter-bar" method="get">
+  <select name="status">
+    <option value="">全部状态</option>
+    {% for s in status_options %}
+    <option value="{{ s }}" {{ 'selected' if status_f == s }}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <select name="follower">
+    <option value="">全部跟进人</option>
+    {% for f in followers %}
+    <option value="{{ f }}" {{ 'selected' if follower_f == f }}>{{ f }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn">筛选</button>
+  <a href="{{ url_for('complaint_list') }}" class="btn btn-outline">重置</a>
+</form>
+
+{% if items %}
+<table class="table">
+  <thead>
+    <tr><th>ID</th><th>客户</th><th>类型</th><th>严重程度</th><th>跟进人</th><th>期限</th><th>状态</th><th>描述</th><th>操作</th></tr>
+  </thead>
+  <tbody>
+  {% for c in items %}
+    <tr class="{{ 'row-urgent' if c.deadline < today and c.status not in ('已解决','已关闭') }}">
+      <td>#{{ c.id }}</td>
+      <td>{{ c.customer }}</td>
+      <td>{{ c.problem_type }}</td>
+      <td><span class="badge badge-{{ c.severity }}">{{ c.severity }}</span></td>
+      <td>{{ c.follower }}</td>
+      <td class="{{ 'overdue' if c.deadline < today and c.status not in ('已解决','已关闭') }}">{{ c.deadline }}</td>
+      <td><span class="status status-{{ c.status }}">{{ c.status }}</span></td>
+      <td class="desc">{{ c.description[:20] }}{{ '...' if c.description|length > 20 }}</td>
+      <td><a href="{{ url_for('detail', cid=c.id) }}" class="btn btn-sm">详情</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="count-info">共 {{ items|length }} 条记录</p>
+{% else %}
+<div class="empty-box">暂无客诉记录</div>
+{% endif %}
+{% endblock %}

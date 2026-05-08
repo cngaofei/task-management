@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>客诉管理系统</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">📋 客诉管理系统</div>
+    <div class="nav-links">
+      <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">仪表盘</a>
+      <a href="{{ url_for('complaint_list') }}" class="{{ 'active' if request.endpoint == 'complaint_list' }}">客诉列表</a>
+      <a href="{{ url_for('add_complaint') }}" class="{{ 'active' if request.endpoint == 'add_complaint' }}">+ 新增客诉</a>
+    </div>
+  </nav>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">客诉管理系统 &copy; 2026</footer>
+</body>
+</html>
