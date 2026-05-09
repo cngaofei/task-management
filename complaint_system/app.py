@@ -105,6 +105,25 @@ def detail(cid):
         return redirect(url_for("detail", cid=cid))
     return render_template("detail.html", c=complaint, status_options=STATUS_OPTIONS)
 
+@app.route("/edit/<int:cid>", methods=["GET", "POST"])
+def edit_complaint(cid):
+    data = load_data()
+    complaint = next((c for c in data["complaints"] if c["id"] == cid), None)
+    if not complaint:
+        return redirect(url_for("complaint_list"))
+    if request.method == "POST":
+        complaint["customer"] = request.form.get("customer", "").strip() or complaint["customer"]
+        complaint["problem_type"] = request.form.get("problem_type", complaint["problem_type"])
+        complaint["severity"] = request.form.get("severity", complaint["severity"])
+        complaint["follower"] = request.form.get("follower", "").strip() or complaint["follower"]
+        complaint["deadline"] = request.form.get("deadline") or complaint["deadline"]
+        complaint["description"] = request.form.get("description", "").strip()
+        complaint["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        save_data(data)
+        return redirect(url_for("detail", cid=cid))
+    return render_template("edit.html", c=complaint, problem_types=PROBLEM_TYPES,
+                           severity_levels=SEVERITY_LEVELS)
+
 @app.route("/api/stats")
 def api_stats():
     data = load_data()

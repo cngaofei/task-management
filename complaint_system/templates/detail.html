@@ -2,7 +2,10 @@
 {% block content %}
 <div class="page-header">
   <h2 class="page-title">客诉详情 #{{ c.id }}</h2>
-  <a href="{{ url_for('complaint_list') }}" class="btn btn-outline">返回列表</a>
+  <div style="display:flex;gap:8px;">
+    <a href="{{ url_for('edit_complaint', cid=c.id) }}" class="btn btn-primary">编辑</a>
+    <a href="{{ url_for('complaint_list') }}" class="btn btn-outline">返回列表</a>
+  </div>
 </div>
 
 <div class="detail-grid">
