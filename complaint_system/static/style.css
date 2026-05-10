@@ -86,3 +86,15 @@ body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f
   .form-row, .detail-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* 统计分析页面 */
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-card { background: #fff; border-radius: 8px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.chart-card.chart-wide { grid-column: span 2; }
+.chart-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: #555; }
+.rate-bar { display: inline-block; width: 60px; height: 8px; background: #eee; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
+.rate-bar span { display: block; height: 100%; background: #27ae60; border-radius: 4px; }
+@media (max-width: 640px) {
+  .chart-grid { grid-template-columns: 1fr; }
+  .chart-card.chart-wide { grid-column: span 1; }
+}

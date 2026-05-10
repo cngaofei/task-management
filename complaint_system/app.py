@@ -124,10 +124,74 @@ def edit_complaint(cid):
     return render_template("edit.html", c=complaint, problem_types=PROBLEM_TYPES,
                            severity_levels=SEVERITY_LEVELS)
 
+def get_analysis_data(complaints):
+    from collections import Counter
+    today = date.today()
+    today_str = today.strftime("%Y-%m-%d")
+
+    status_count = Counter(c["status"] for c in complaints)
+    type_count = Counter(c["problem_type"] for c in complaints)
+    sev_count = Counter(c["severity"] for c in complaints)
+
+    # 近6个月趋势
+    months = []
+    for i in range(5, -1, -1):
+        m = today.month - i
+        y = today.year
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
+
+    monthly_new = {m: 0 for m in months}
+    monthly_resolved = {m: 0 for m in months}
+    for c in complaints:
+        mk = c["created_at"][:7]
+        if mk in monthly_new:
+            monthly_new[mk] += 1
+        if c["status"] in ("已解决", "已关闭"):
+            mrk = c["updated_at"][:7]
+            if mrk in monthly_resolved:
+                monthly_resolved[mrk] += 1
+
+    # 跟进人统计
+    follower_map = {}
+    for c in complaints:
+        f = c.get("follower") or "未分配"
+        if f not in follower_map:
+            follower_map[f] = {"total": 0, "active": 0, "overdue": 0, "resolved": 0}
+        follower_map[f]["total"] += 1
+        if c["status"] in ("已解决", "已关闭"):
+            follower_map[f]["resolved"] += 1
+        else:
+            follower_map[f]["active"] += 1
+            if c["deadline"] < today_str:
+                follower_map[f]["overdue"] += 1
+
+    return {
+        "status_dist": dict(status_count),
+        "type_dist": dict(type_count),
+        "sev_dist": dict(sev_count),
+        "months": months,
+        "monthly_new": [monthly_new[m] for m in months],
+        "monthly_resolved": [monthly_resolved[m] for m in months],
+        "follower_stats": follower_map,
+    }
+
+@app.route("/analysis")
+def analysis():
+    data = load_data()
+    return render_template("analysis.html", total=len(data["complaints"]))
+
 @app.route("/api/stats")
 def api_stats():
     data = load_data()
     return jsonify(get_stats(data["complaints"]))
+
+@app.route("/api/analysis")
+def api_analysis():
+    data = load_data()
+    return jsonify(get_analysis_data(data["complaints"]))
 
 if __name__ == "__main__":
     import threading, webbrowser

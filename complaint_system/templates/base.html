@@ -12,6 +12,7 @@
     <div class="nav-links">
       <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">仪表盘</a>
       <a href="{{ url_for('complaint_list') }}" class="{{ 'active' if request.endpoint == 'complaint_list' }}">客诉列表</a>
+      <a href="{{ url_for('analysis') }}" class="{{ 'active' if request.endpoint == 'analysis' }}">统计分析</a>
       <a href="{{ url_for('add_complaint') }}" class="{{ 'active' if request.endpoint == 'add_complaint' }}">+ 新增客诉</a>
     </div>
   </nav>

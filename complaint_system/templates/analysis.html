@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <h2 class="page-title">统计分析</h2>
+  <a href="{{ url_for('index') }}" class="btn">返回仪表盘</a>
+</div>
+
+<div id="no-data" class="empty-box" style="display:none">暂无客诉数据，请先添加客诉记录。</div>
+
+<div id="analysis-content">
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3 class="chart-title">问题类型分布</h3>
+      <canvas id="typeChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3 class="chart-title">严重程度分布</h3>
+      <canvas id="sevChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3 class="chart-title">状态分布</h3>
+      <canvas id="statusChart"></canvas>
+    </div>
+    <div class="chart-card chart-wide">
+      <h3 class="chart-title">近6个月趋势</h3>
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <div class="section" style="margin-top:20px">
+    <h3 class="section-title">跟进人工作统计</h3>
+    <table class="table" id="followerTable">
+      <thead>
+        <tr><th>跟进人</th><th>总计</th><th>处理中</th><th>已逾期</th><th>已解决</th><th>解决率</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const COLORS = {
+  type: ["#3498db","#2ecc71","#e74c3c","#f39c12","#9b59b6","#1abc9c"],
+  sev:  ["#27ae60","#3498db","#e67e22","#e74c3c"],
+  status: ["#e67e22","#3498db","#27ae60","#95a5a6"],
+};
+
+function makePie(id, labels, values, colors) {
+  new Chart(document.getElementById(id), {
+    type: "doughnut",
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2 }] },
+    options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+  });
+}
+
+function makeBar(id, labels, values, color, label) {
+  new Chart(document.getElementById(id), {
+    type: "bar",
+    data: { labels, datasets: [{ label, data: values, backgroundColor: color, borderRadius: 4 }] },
+    options: { responsive: true, plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+}
+
+fetch("/api/analysis").then(r => r.json()).then(d => {
+  const total = Object.values(d.status_dist).reduce((a,b)=>a+b,0);
+  if (!total) { document.getElementById("no-data").style.display="block";
+    document.getElementById("analysis-content").style.display="none"; return; }
+
+  // 问题类型 bar
+  const typeKeys = Object.keys(d.type_dist), typeVals = Object.values(d.type_dist);
+  makeBar("typeChart", typeKeys, typeVals, COLORS.type.slice(0, typeKeys.length), "数量");
+
+  // 严重程度 pie
+  const sevOrder=["低","中","高","紧急"];
+  makePie("sevChart", sevOrder, sevOrder.map(k=>d.sev_dist[k]||0), COLORS.sev);
+
+  // 状态 pie
+  const stOrder=["待处理","处理中","已解决","已关闭"];
+  makePie("statusChart", stOrder, stOrder.map(k=>d.status_dist[k]||0), COLORS.status);
+
+  // 趋势 bar
+  new Chart(document.getElementById("trendChart"), {
+    type: "bar",
+    data: { labels: d.months,
+      datasets: [
+        { label: "新增", data: d.monthly_new, backgroundColor: "#3498db", borderRadius: 3 },
+        { label: "解决", data: d.monthly_resolved, backgroundColor: "#27ae60", borderRadius: 3 }
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+
+  // 跟进人表
+  const tbody = document.querySelector("#followerTable tbody");
+  Object.entries(d.follower_stats).sort((a,b)=>b[1].total-a[1].total).forEach(([name,s])=>{
+    const rate = s.total>0 ? Math.round(s.resolved/s.total*100) : 0;
+    const overdueCls = s.overdue>0 ? 'style="color:#e74c3c;font-weight:600"' : '';
+    tbody.insertAdjacentHTML("beforeend",
+      `<tr><td>${name}</td><td>${s.total}</td><td>${s.active}</td>
+       <td ${overdueCls}>${s.overdue}</td><td>${s.resolved}</td>
+       <td><span class="rate-bar"><span style="width:${rate}%"></span></span>${rate}%</td></tr>`);
+  });
+});
+</script>
+{% endblock %}
