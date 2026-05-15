@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# 客诉管理系统 Flask 应用入口
+# 提供客诉的增删改查及统计功能
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import json, os
 from datetime import datetime, date, timedelta
